@@ -32,6 +32,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import java.util.Calendar
 
 @Composable
 
@@ -62,6 +64,13 @@ fun AddTaskScreen(
     var text by remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
     val borderColor = if (isFocused) inputFocusColor else inputColor
+    var showTimePicker by remember { mutableStateOf(false) }
+    val currentTime = Calendar.getInstance()
+    val timePickerState = rememberTimePickerState(
+        initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
+        initialMinute = currentTime.get(Calendar.MINUTE),
+        is24Hour = true,
+    )
     Scaffold(
         topBar = {
             TopAppBar(
@@ -181,6 +190,30 @@ fun AddTaskScreen(
                     modifier =Modifier.align(Alignment.End)
                 ) { Text(text = if (editableTask != null) "Update Task" else "Save Task")}
 
+            }
+            // Button to open Time Picker
+            Button(
+                onClick = { showTimePicker = true },
+                modifier = Modifier.align(Alignment.Start).padding(vertical = 16.dp)
+            ) {
+                Text("Select Time")
+            }
+
+// Time Picker Dialog
+            if (showTimePicker) {
+                DialWithDialogExample(
+                    onConfirm = { timePickerState ->
+                        // Handle the confirmed time here
+                        val hour = timePickerState.hour
+                        val minute = timePickerState.minute
+                        // Update the task state with the selected time
+//                        onEvent(TaskEvent.SetTaskTime(hour, minute)) // Make sure to implement this event
+                        showTimePicker = false // Close the dialog
+                    },
+                    onDismiss = {
+                        showTimePicker = false // Close the dialog
+                    }
+                )
             }
 
         }
