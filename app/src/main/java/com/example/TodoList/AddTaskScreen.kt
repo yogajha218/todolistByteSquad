@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.FlowRowScopeInstance.align
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -62,6 +61,9 @@ fun AddTaskScreen(
     var text by remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
     val borderColor = if (isFocused) inputFocusColor else inputColor
+    var showTimePicker by remember { mutableStateOf(false) }
+    val currentTime = Calendar.getInstance()
+    var selectedTime by remember { mutableStateOf("") }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -181,6 +183,23 @@ fun AddTaskScreen(
                     modifier =Modifier.align(Alignment.End)
                 ) { Text(text = if (editableTask != null) "Update Task" else "Save Task")}
 
+            }
+            // Time Picker Dialog
+            if (showTimePicker) {
+                DialWithDialog(
+                    onConfirm = { timePickerState ->
+                        // Handle the confirmed time here
+                        val hour = timePickerState.hour
+                        val minute = timePickerState.minute
+                        val toMillis  = timeToMillis(hour, minute)
+                        onEvent(TaskEvent.SetDueTime(toMillis))
+                        selectedTime = String.format("%02d:%02d", hour, minute)
+                        showTimePicker = false // Close the dialog
+                    },
+                    onDismiss = {
+                        showTimePicker = false // Close the dialog
+                    }
+                )
             }
 
         }

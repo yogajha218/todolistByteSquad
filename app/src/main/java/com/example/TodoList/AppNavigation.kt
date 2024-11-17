@@ -38,7 +38,6 @@ fun AppNavigation(
                 navController = navController
             )
         }
-
         // Add/Edit Task Screen
         composable("add_task_screen") { backStackEntry ->
             // Retrieve the editable task, if any
