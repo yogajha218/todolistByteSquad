@@ -7,6 +7,5 @@ data class TaskState(
     val taskImportance: Int = 3,
     val isAddingTask: Boolean = false,
     val sortType: SortType = SortType.TITLE,
-    val dueTime: Long = 0L,
 
 )

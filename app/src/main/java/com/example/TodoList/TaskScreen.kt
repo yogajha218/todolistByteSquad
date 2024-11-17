@@ -41,13 +41,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Date
-import java.util.Locale
-import java.util.logging.SimpleFormatter
 
 @Composable
 fun TaskScreen(
@@ -63,7 +56,7 @@ fun TaskScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                navController.navigate("add_task_screen")
+                onEvent(TaskEvent.ShowDialog)
             }, shape = RoundedCornerShape(8.dp)
                 , modifier = Modifier.padding(12.dp)) {
                 Row(modifier = Modifier.padding(horizontal = 12.dp),
@@ -122,8 +115,6 @@ fun TaskScreen(
              }
          }
             items(state.tasks){ task ->
-                var dueTimeString = convertToDueTimeToString(task.dueTime)
-//                var dueTimeString = task.dueTime.toString()
                 Card(
                     modifier = Modifier
                         .padding(horizontal = 14.dp, vertical = 6.dp),
@@ -167,9 +158,9 @@ fun TaskScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Absolute.Center
                             ) {
-//                                Text(text="Today")
+                                Text(text="Today")
                                 Text(
-                                    text = "due time ${dueTimeString}",
+                                    text = "06.00 PM - 08.00 PM",
                                     modifier = Modifier.padding(horizontal = 6.dp),
                                     fontSize = 14.sp
                                 )
@@ -208,9 +199,5 @@ fun TaskScreen(
             }
         }
     }
-}
-fun convertToDueTimeToString(dueTime: Long): String{
-    val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
-    return formatter.format(Date(dueTime))
 }
 
