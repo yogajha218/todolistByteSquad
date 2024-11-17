@@ -41,6 +41,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
+import java.util.logging.SimpleFormatter
 
 @Composable
 fun TaskScreen(
@@ -70,7 +77,7 @@ fun TaskScreen(
             }
         }
     ) {
-        paddingValues ->
+            paddingValues ->
         LazyColumn(
             contentPadding = paddingValues,
             modifier = Modifier
@@ -78,43 +85,45 @@ fun TaskScreen(
                 .background(gradientBrush),
 //            verticalArrangement = Arrangement.SpaceBy
         ) {
-         item {
-             Text(
-                 text = "Home",
-                 textAlign = TextAlign.Center,
-                 fontSize = 28.sp,
-                 fontWeight = FontWeight.Bold,
-                 color = Color.White,
-                 modifier = Modifier
-                     .fillMaxWidth()
-                     .padding(12.dp)
-             )
-         }
-         item {
-             Row(
-                 modifier = Modifier
-                     .fillMaxWidth()
-                     .horizontalScroll(rememberScrollState()),
-                 verticalAlignment = Alignment.CenterVertically
-             ) {
-                 SortType.values().forEach { sortType ->
-                     Row(
-                         modifier = Modifier
-                             .clickable {
-                                 onEvent(TaskEvent.SortTask(sortType))
-                             },
-                         verticalAlignment = Alignment.CenterVertically
-                     ) {
-                         RadioButton(
-                             selected = state.sortType == sortType,
-                             onClick = {onEvent(TaskEvent.SortTask(sortType))},
-                         )
-                         Text(text = sortType.name)
-                     }
-                 }
-             }
-         }
+            item {
+                Text(
+                    text = "Home",
+                    textAlign = TextAlign.Center,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                )
+            }
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SortType.values().forEach { sortType ->
+                        Row(
+                            modifier = Modifier
+                                .clickable {
+                                    onEvent(TaskEvent.SortTask(sortType))
+                                },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = state.sortType == sortType,
+                                onClick = {onEvent(TaskEvent.SortTask(sortType))},
+                            )
+                            Text(text = sortType.name)
+                        }
+                    }
+                }
+            }
             items(state.tasks){ task ->
+                var dueTimeString = convertToDueTimeToString(task.dueTime)
+//                var dueTimeString = task.dueTime.toString()
                 Card(
                     modifier = Modifier
                         .padding(horizontal = 14.dp, vertical = 6.dp),
@@ -158,9 +167,9 @@ fun TaskScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Absolute.Center
                             ) {
-                                Text(text="Today")
+//                                Text(text="Today")
                                 Text(
-                                    text = "06.00 PM - 08.00 PM",
+                                    text = "due time ${dueTimeString}",
                                     modifier = Modifier.padding(horizontal = 6.dp),
                                     fontSize = 14.sp
                                 )
@@ -199,5 +208,9 @@ fun TaskScreen(
             }
         }
     }
+}
+fun convertToDueTimeToString(dueTime: Long): String{
+    val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+    return formatter.format(Date(dueTime))
 }
 
