@@ -56,7 +56,7 @@ fun TaskScreen(
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                onEvent(TaskEvent.ShowDialog)
+                navController.navigate("add_task_screen")
             }, shape = RoundedCornerShape(8.dp)
                 , modifier = Modifier.padding(12.dp)) {
                 Row(modifier = Modifier.padding(horizontal = 12.dp),
