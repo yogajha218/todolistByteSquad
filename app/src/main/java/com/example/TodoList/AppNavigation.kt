@@ -39,15 +39,11 @@ fun AppNavigation(
             )
         }
         // Add/Edit Task Screen
-        composable("add_task_screen") { backStackEntry ->
-            // Retrieve the editable task, if any
-            val editableTask = backStackEntry.savedStateHandle.get<Task>("editableTask")
-
+        composable("add_task_screen")
             AddTaskScreen(
                 navController = navController,
                 state = state,
                 onEvent = onEvent,
-                editableTask = editableTask // Pass the task if editing
             )
         }
     }

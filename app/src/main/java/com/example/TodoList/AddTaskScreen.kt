@@ -47,6 +47,7 @@ import androidx.navigation.NavController
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.Calendar
 
 @Composable
 
@@ -60,7 +61,6 @@ fun AddTaskScreen(
     val inputFocusColor = Color(0xFFFF9136)
     var expanded by rememberSaveable { mutableStateOf(false) }
     val items = listOf(1, 2, 3) // Priority levels
-    var text by remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
     val borderColor = if (isFocused) inputFocusColor else inputColor
     var showTimePicker by remember { mutableStateOf(false) }
@@ -79,7 +79,7 @@ fun AddTaskScreen(
                         IconButton(onClick = {navController.navigate("Task_Screen")},
                         ) {
                             Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back Arrow",
+                                contentDescription = "Delete Task",
                                 modifier = Modifier.size(40.dp))
                         }
                         Text("Add Task")
@@ -93,21 +93,24 @@ fun AddTaskScreen(
         Column(modifier = modifier.padding(innerPadding)) {
             // Title input
             TextField(
-                label = {Text(text = "Title")},
+                label = {Text(text = "Title", color = Color.Black)},
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     containerColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+
                 ),
-                value = state.title
+                value = state.title,
                 onValueChange = { onEvent(TaskEvent.SetTitle(it)) },
-                placeholder = { Text(text = "Write The Title Here ....") },
+                placeholder = { Text(text = "Write The Title Here ....", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
                     .background(color = inputColor, shape = RoundedCornerShape(12.dp))
                     .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(12.dp)).onFocusChanged {
-                        focusState ->   isFocused = focusState.isFocused
+                            focusState ->   isFocused = focusState.isFocused
                     }
             )
 
@@ -116,10 +119,22 @@ fun AddTaskScreen(
             // Description input
             TextField(
                 label = { Text(text = "Description") },
-                value = state.description
+                value = state.description,
+                colors = TextFieldDefaults.textFieldColors(
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    containerColor = Color.Transparent,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black
+
+                ),
                 onValueChange = { onEvent(TaskEvent.SetDescription(it)) },
                 placeholder = { Text(text = "Write Down The Description") },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).border(shape = RoundedCornerShape(12.dp), width = 2.dp, color = inputColor)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
+                    .background(color = inputColor, shape = RoundedCornerShape(12.dp))
+                    .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(12.dp)).onFocusChanged {
+                            focusState ->   isFocused = focusState.isFocused
+                    }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -137,7 +152,7 @@ fun AddTaskScreen(
                         text = "Priority: ${state.taskImportance}",
                         modifier = Modifier
                             .clickable { expanded = true }
-                            .background(Color.Transparent, shape = RoundedCornerShape(8.dp))
+                            .background(Color.Red, shape = RoundedCornerShape(8.dp))
                             .padding(16.dp)
                     )
                     DropdownMenu(
@@ -156,22 +171,31 @@ fun AddTaskScreen(
                                     // Update importance
                                     expanded = false
                                 },
-//                            colors = ,
                                 contentPadding = PaddingValues(4.dp)
                             )
                         }
                     }
                 }
+                // Button to save task
                 Button(
-                    onClick = {onEvent(TaskEvent.SaveTask)
-                       navController.navigate("task_Screen") // Navigate back after save
-                    },
+                    onClick = {
+                        onEvent(TaskEvent.SaveTask) // Save New Task
+                        navController.navigate("task_Screen")  }, // Navigate back after save/update
                     shape = RoundedCornerShape(8.dp),
                     modifier =Modifier.align(Alignment.End)
                 ) { Text(text = "Save Task")}
+                // Button to open Time Picker
+                Text(text = if (selectedTime.isEmpty()) "No time selected" else "Selected Time: $selectedTime")
+                Button(
+                    onClick = { showTimePicker = true },
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.align(Alignment.End).padding(vertical = 16.dp)
+                ) {
+                    Text("Select Time")
+                }
 
             }
-            // Time Picker Dialog
+// Time Picker Dialog
             if (showTimePicker) {
                 DialWithDialog(
                     onConfirm = { timePickerState ->
