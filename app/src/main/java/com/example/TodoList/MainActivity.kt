@@ -13,6 +13,8 @@ import com.example.TodoList.data.TaskDatabase
 import com.example.TodoList.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
+    val scheduler = AndroidAlarmScheduler(this)
+    var alarmitem: Alarm? = null
     private val db by lazy {
         Room.databaseBuilder(
             applicationContext,
@@ -37,7 +39,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApplicationTheme {
                 val state by viewModel.state.collectAsState()
-                AppNavigation(viewModel = viewModel, state = state, onEvent = viewModel::onEvent)
+                AppNavigation(viewModel = viewModel, state = state, onEvent = viewModel::onEvent, scheduler = scheduler, alarmitem = alarmitem)
+
             }
         }
     }

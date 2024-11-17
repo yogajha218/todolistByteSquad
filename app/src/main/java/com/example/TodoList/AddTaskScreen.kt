@@ -3,6 +3,12 @@
 package com.example.TodoList
 
 import android.annotation.SuppressLint
+import android.app.NotificationManager
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +19,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -27,6 +34,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -35,8 +43,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -44,15 +50,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.util.Calendar
-
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat.getSystemService
+import java.time.LocalDateTime
 
 @Composable
 
@@ -61,6 +73,8 @@ fun AddTaskScreen(
     state: TaskState,
     onEvent: (TaskEvent) -> Unit,
     modifier: Modifier = Modifier,
+    scheduler: AlarmScheduler,
+    alarmitem: Alarm?
 ) {
     val inputColor = Color(0xFFFFE4AD)
     val inputFocusColor = Color(0xFFFF9136)
@@ -76,6 +90,26 @@ fun AddTaskScreen(
         initialMinute = currentTime.get(Calendar.MINUTE),
         is24Hour = true,
     )
+    val context = LocalContext.current
+    var hasNotificationPermission by remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mutableStateOf(
+                ContextCompat.checkSelfPermission(
+                    context,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            )
+        } else mutableStateOf(true)
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            hasNotificationPermission = isGranted
+        }
+    )
+    var secondsText by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
+
 
     Scaffold(
         topBar = {
@@ -105,7 +139,7 @@ fun AddTaskScreen(
         Column(modifier = modifier.padding(innerPadding)) {
             // Title input
             TextField(
-                label = {Text(text = "Title", color = Color.Black)},
+                label = { Text(text = "Title", color = Color.Black) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
@@ -121,8 +155,9 @@ fun AddTaskScreen(
                 placeholder = { Text(text = "Write The Title Here ....", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
                     .background(color = inputColor, shape = RoundedCornerShape(12.dp))
-                    .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(12.dp)).onFocusChanged {
-                        focusState ->   isFocused = focusState.isFocused
+                    .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(12.dp))
+                    .onFocusChanged { focusState ->
+                        isFocused = focusState.isFocused
                     }
             )
 
@@ -144,8 +179,9 @@ fun AddTaskScreen(
                 placeholder = { Text(text = "Write Down The Description") },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
                     .background(color = inputColor, shape = RoundedCornerShape(12.dp))
-                    .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(12.dp)).onFocusChanged {
-                            focusState ->   isFocused = focusState.isFocused
+                    .border(width = 1.dp, color = borderColor, shape = RoundedCornerShape(12.dp))
+                    .onFocusChanged { focusState ->
+                        isFocused = focusState.isFocused
                     }
             )
 
@@ -154,12 +190,11 @@ fun AddTaskScreen(
             // Priority Dropdown
             Column(
                 modifier = Modifier
-
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
 
             ) {
-                Box{
+                Box {
                     Text(
                         text = "Priority: ${state.taskImportance}",
                         modifier = Modifier
@@ -170,11 +205,21 @@ fun AddTaskScreen(
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.border(shape = RoundedCornerShape(16.dp), width = 2.dp, color = Color.Black).background(shape = RoundedCornerShape(16.dp), color = Color.Transparent)
+                        modifier = Modifier.border(
+                            shape = RoundedCornerShape(16.dp),
+                            width = 2.dp,
+                            color = Color.Black
+                        ).background(shape = RoundedCornerShape(16.dp), color = Color.Transparent)
                     ) {
                         items.forEach { item ->
                             DropdownMenuItem(
-                                text = { Text(text = item.toString(), textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
+                                text = {
+                                    Text(
+                                        text = item.toString(),
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                },
                                 onClick = {
                                     onEvent(TaskEvent.SetTaskImportance(item))
                                     // Update importance
@@ -189,19 +234,20 @@ fun AddTaskScreen(
                 Button(
                     onClick = {
                         onEvent(TaskEvent.SaveTask) // Save New Task
-                        navController.navigate("task_Screen")  }, // Navigate back after save/update
+                        navController.navigate("task_Screen")
+                    }, // Navigate back after save/update
                     shape = RoundedCornerShape(8.dp),
-                    modifier =Modifier.align(Alignment.End)
-                ) { Text(text = "Save Task")}
+                    modifier = Modifier.align(Alignment.End)
+                ) { Text(text = "Save Task") }
                 // Button to open Time Picker
                 Text(text = if (selectedTime.isEmpty()) "No time selected" else "Selected Time: $selectedTime")
-                Button(
-                    onClick = { showTimePicker = true },
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.align(Alignment.End).padding(vertical = 16.dp)
-                ) {
-                    Text("Select Time")
-                }
+//                Button(
+//                    onClick = { showTimePicker = true },
+//                    shape = RoundedCornerShape(8.dp),
+//                    modifier = Modifier.align(Alignment.End).padding(vertical = 16.dp)
+//                ) {
+//                    Text("Select Time")
+//                }
 
             }
 // Time Picker Dialog
@@ -211,7 +257,7 @@ fun AddTaskScreen(
                         // Handle the confirmed time here
                         val hour = timePickerState.hour
                         val minute = timePickerState.minute
-                        val toMillis  = timeToMillis(hour, minute)
+                        val toMillis = timeToMillis(hour, minute)
                         onEvent(TaskEvent.SetDueTime(toMillis))
                         selectedTime = String.format("%02d:%02d", hour, minute)
                         // Update the task state with the selected time
@@ -225,9 +271,99 @@ fun AddTaskScreen(
             }
 
         }
-    }
+        //UI Notification
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(16.dp),
+//            verticalArrangement = Arrangement.Bottom,
+//            horizontalAlignment = Alignment.CenterHorizontally
+//
+//        ) {
+//            Button(onClick = {
+//            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+//            }) {
+//                Text(text = "Request Permission")
+//
+//            }
+//            Button(onClick = {
+//                if (hasNotificationPermission){
+//                    showNotification(context)
+//                }
+//            }) {
+//                Text(text = "Show Notification")
+//            }
+//        }
 
+        //UI Alarm
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+        ) {  OutlinedTextField(
+            value = secondsText,
+            onValueChange = { secondsText = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
+                Text(text = "Trigger Alarm in seconds")
+            }
+
+        )
+            OutlinedTextField(
+                value = message,
+                onValueChange = { message = it },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = {
+                    Text(text = "Message")
+                }
+
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ){
+                Button(onClick = {
+                        alarmitem = Alarm(
+                            time = LocalDateTime.now()
+                                .plusSeconds(secondsText.toLong()),
+                            message = message
+                        )
+                    alarmitem?.let { scheduler::schedule }
+                    secondsText = ""
+                    message = ""
+                }) {
+                    Text(text = "Schedule")
+                }
+                Button(onClick = {
+                    alarmitem?.let { scheduler::cancel }
+                }) {
+                    Text(text = "Cancel")
+                }
+
+            }
+
+
+        }
+    }
 }
+fun getSystemService(notificationService: String) {
+}
+
+fun showNotification(context: Context) {
+    val notificationManager = ContextCompat.getSystemService(
+        context, NotificationManager::class.java
+    )
+    val notification = NotificationCompat.Builder(context, "channel_id")
+        .setContentText("This is a content")
+        .setContentTitle("Hello")
+        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .build()
+
+    notificationManager?.notify(1, notification)
+}
+
+
 fun timeToMillis(hour: Int, minute: Int): Long{
     val currentDate = LocalDate.now()
     val localTime = LocalTime.of(hour, minute)

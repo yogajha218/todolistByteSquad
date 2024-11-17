@@ -9,7 +9,9 @@ import androidx.navigation.compose.rememberNavController
 fun AppNavigation(
     viewModel: TaskViewModel,
     state: TaskState,
-    onEvent: (TaskEvent) -> Unit
+    onEvent: (TaskEvent) -> Unit,
+    scheduler: AlarmScheduler,
+    alarmitem: Alarm?
 ) {
     val navController = rememberNavController()
 
@@ -32,6 +34,8 @@ fun AppNavigation(
                 navController = navController,
                 state = state,
                 onEvent = onEvent, // Pass the task if editing
+                scheduler = scheduler,
+                alarmitem = alarmitem
             )
         }
     }
