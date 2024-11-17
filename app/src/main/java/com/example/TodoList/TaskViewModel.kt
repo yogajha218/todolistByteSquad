@@ -72,31 +72,7 @@ class TaskViewModel(
                )}
 
            }
-           is TaskEvent.UpdateTask -> {
-               // Update the existing task in the database
-               viewModelScope.launch {
-                   dao.updateTask(event.task)
-               }
-               _state.update {
-                   it.copy(
-                       isAddingTask = false,
-                       title = "",
-                       description = "",
-                       taskImportance = 3
-                   )
-               }
-           }
-           is TaskEvent.EditTask -> {
-               // Load task details into state for editing
-               _state.update {
-                   it.copy(
-                       isAddingTask = true,
-                       title = event.task.title,
-                       description = event.task.description,
-                       taskImportance = event.task.taskImportance
-                   )
-               }
-           }
+
            is TaskEvent.SetTitle ->{
                _state.update { it.copy(
                    title = event.title
@@ -112,9 +88,10 @@ class TaskViewModel(
                    description = event.description
                ) }
            }
-           TaskEvent.ShowDialog -> {
+           is TaskEvent.SetDueTime -> {
                _state.update { it.copy(
-                   isAddingTask = true
+                   dueTime = event.dueTime
+
                ) }
            }
            is TaskEvent.SortTask ->{

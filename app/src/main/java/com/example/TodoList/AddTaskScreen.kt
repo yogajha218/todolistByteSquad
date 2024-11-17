@@ -52,7 +52,6 @@ fun AddTaskScreen(
     state: TaskState,
     onEvent: (TaskEvent) -> Unit,
     modifier: Modifier = Modifier,
-    editableTask: Task? = null
 ) {
     val inputColor = Color(0xFFFFE4AD)
     val inputFocusColor = Color(0xFFFF9136)
@@ -62,7 +61,6 @@ fun AddTaskScreen(
     var isFocused by remember { mutableStateOf(false) }
     val borderColor = if (isFocused) inputFocusColor else inputColor
     var showTimePicker by remember { mutableStateOf(false) }
-    val currentTime = Calendar.getInstance()
     var selectedTime by remember { mutableStateOf("") }
     Scaffold(
         topBar = {
@@ -78,7 +76,7 @@ fun AddTaskScreen(
                         IconButton(onClick = {navController.navigate("Task_Screen")},
                         ) {
                             Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Delete Task",
+                                contentDescription = "Back Arrow",
                                 modifier = Modifier.size(40.dp))
                         }
                         Text("Add Task")
@@ -90,8 +88,6 @@ fun AddTaskScreen(
         },
     ) { innerPadding ->
         Column(modifier = modifier.padding(innerPadding)) {
-//            Text(text = "Add Task", fontSize = 34.sp)
-
             // Title input
             TextField(
                 label = {Text(text = "Title")},
@@ -102,7 +98,7 @@ fun AddTaskScreen(
                     focusedIndicatorColor = Color.Transparent,
                     containerColor = Color.Transparent,
                 ),
-                value = state.title.ifBlank { editableTask?.title ?: "" },
+                value = state.title
                 onValueChange = { onEvent(TaskEvent.SetTitle(it)) },
                 placeholder = { Text(text = "Write The Title Here ....") },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp)
@@ -117,7 +113,7 @@ fun AddTaskScreen(
             // Description input
             TextField(
                 label = { Text(text = "Description") },
-                value = state.description.ifBlank { editableTask?.description ?: "" },
+                value = state.description
                 onValueChange = { onEvent(TaskEvent.SetDescription(it)) },
                 placeholder = { Text(text = "Write Down The Description") },
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).border(shape = RoundedCornerShape(12.dp), width = 2.dp, color = inputColor)
@@ -135,16 +131,19 @@ fun AddTaskScreen(
             ) {
                 Box{
                     Text(
-                        text = "Priority: ${state.taskImportance.takeIf { it > 0 } ?: (editableTask?.taskImportance ?: "Select")}",
+                        text = "Priority: ${state.taskImportance}",
                         modifier = Modifier
                             .clickable { expanded = true }
-                            .background(Color.Red, shape = RoundedCornerShape(8.dp))
+                            .background(Color.Transparent, shape = RoundedCornerShape(8.dp))
                             .padding(16.dp)
                     )
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.border(shape = RoundedCornerShape(16.dp), width = 2.dp, color = Color.Black).background(shape = RoundedCornerShape(16.dp), color = Color.Red)
+                        modifier = Modifier.border(shape = RoundedCornerShape(16.dp),
+                            width = 2.dp, color = Color.Black)
+                            .background(shape = RoundedCornerShape(16.dp),
+                                color = Color.Transparent)
                     ) {
                         items.forEach { item ->
                             DropdownMenuItem(
@@ -161,27 +160,12 @@ fun AddTaskScreen(
                     }
                 }
                 Button(
-                    onClick = {
-                        if (editableTask != null) {
-                            // Update Task
-                            onEvent(
-                                TaskEvent.UpdateTask(
-                                    editableTask.copy(
-                                        title = state.title.ifBlank { editableTask.title },
-                                        description = state.description.ifBlank { editableTask.description },
-                                        taskImportance = state.taskImportance.takeIf { it > 0 } ?: editableTask.taskImportance
-                                    )
-                                )
-                            )
-                        } else {
-                            // Save New Task
-                            onEvent(TaskEvent.SaveTask)
-                        }
-                        navController.navigate("task_Screen") // Navigate back after save/update
+                    onClick = {onEvent(TaskEvent.SaveTask)
+                       navController.navigate("task_Screen") // Navigate back after save
                     },
                     shape = RoundedCornerShape(8.dp),
                     modifier =Modifier.align(Alignment.End)
-                ) { Text(text = if (editableTask != null) "Update Task" else "Save Task")}
+                ) { Text(text = "Save Task")}
 
             }
             // Time Picker Dialog
@@ -205,4 +189,9 @@ fun AddTaskScreen(
         }
     }
 
+}
+fun timeToMillis(hour: Int, minute: Int): Long{
+    val currentDate = LocalDate.now()
+    val localTime = LocalTime.of(hour, minute)
+    return localTime.atDate(currentDate).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 }

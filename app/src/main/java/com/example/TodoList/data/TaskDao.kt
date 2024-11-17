@@ -19,16 +19,9 @@ interface TaskDao {
     @Query("SELECT * FROM task ORDER BY taskImportance ASC")
     fun getTaskOrderByPriority(): Flow<List<Task>>
 
-//    @Query("SELECT * FROM task ORDER BY dueDate DESC")
-//    fun getTaskOrderByDueDate(): Flow<List<Task>>
 
     @Query("SELECT * FROM task ORDER BY title ASC")
     fun getTaskOrderByTitle(): Flow<List<Task>>
 
-    @Query("SELECT * FROM task WHERE id = :taskId")
-    fun getTaskById(taskId: Int): Flow<Task>
-
-    @Update
-    suspend fun updateTask(task: Task)
 
 }
