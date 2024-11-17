@@ -12,7 +12,7 @@ import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DialWithDialogExample(
+fun DialWithDialog(
     onConfirm: (TimePickerState) -> Unit,
     onDismiss: () -> Unit,
 ) {

@@ -42,15 +42,11 @@ class TaskViewModel(
                      dao.deleteTask(event.task)
                  }
            }
-           TaskEvent.HideDialog ->{
-               _state.update { it.copy(
-                   isAddingTask = false
-               ) }
-           }
            TaskEvent.SaveTask -> {
                val title = state.value.title
                val description = state.value.description
                val taskImportance = state.value.taskImportance
+               val dueTime = state.value.dueTime
 
                if(title.isBlank())
                {
@@ -60,6 +56,7 @@ class TaskViewModel(
                    title = title,
                    description = description,
                    taskImportance = taskImportance,
+                   dueTime = dueTime,
                )
                viewModelScope.launch {
                    dao.insertTask(task)
