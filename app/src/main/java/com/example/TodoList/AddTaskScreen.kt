@@ -2,6 +2,7 @@
 
 package com.example.TodoList
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,6 +33,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +49,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.runtime.*
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 
@@ -62,6 +69,13 @@ fun AddTaskScreen(
     var text by remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
     val borderColor = if (isFocused) inputFocusColor else inputColor
+    var expandedTime by remember { mutableStateOf(false) }
+    var selectedHour by remember { mutableStateOf("") }
+    var expandedAmPm by remember { mutableStateOf(false) }
+    var selectedAmPm by remember { mutableStateOf("") }
+    val hours = (1..12).map { it.toString() }
+    val amPmOptions = listOf("AM", "PM")
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -158,6 +172,93 @@ fun AddTaskScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Time Picker with 12-hour format and AM/PM dropdown
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Hour Dropdown
+                    ExposedDropdownMenuBox(
+                        expanded = expandedTime,
+                        onExpandedChange = { expandedTime = !expandedTime }
+                    ) {
+                        OutlinedTextField(
+                            readOnly = true,
+                            value = selectedHour,
+                            onValueChange = { },
+                            label = { Text("Select Hour") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedTime) },
+                            modifier = Modifier.
+                            menuAnchor().
+                            weight(1f)
+
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedTime,
+                            onDismissRequest = { expandedTime = false }
+                        ) {
+                            hours.forEach { hour ->
+                                DropdownMenuItem(
+                                    text = { Text(text = hour) },
+                                    onClick = {
+                                        selectedHour = hour
+                                        expandedTime = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // AM/PM Dropdown
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ExposedDropdownMenuBox(
+                        expanded = expandedAmPm,
+                        onExpandedChange = { expandedAmPm = !expandedAmPm },
+                        modifier = Modifier
+                    ) {
+                        OutlinedTextField(
+                            readOnly = true,
+                            value = selectedAmPm,
+                            onValueChange = { },
+                            label = { Text("AM/PM") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedAmPm) },
+                            modifier = Modifier.menuAnchor()
+                                .weight(1f)
+
+                        )
+                        ExposedDropdownMenu(
+                            expanded = expandedAmPm,
+                            onDismissRequest = { expandedAmPm = false },
+                            modifier = Modifier
+                        ) {
+                            amPmOptions.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(text = option) },
+                                    onClick = {
+                                        selectedAmPm = option
+                                        expandedAmPm = false
+                                    }
+                                )
+                            }
+                        }
+                    } }
+
+
+
                 Button(
                     onClick = {
                         if (editableTask != null) {
