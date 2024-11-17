@@ -69,11 +69,6 @@ fun AddTaskScreen(
     var showTimePicker by remember { mutableStateOf(false) }
     val currentTime = Calendar.getInstance()
     var selectedTime by remember { mutableStateOf("") }
-    val timePickerState = rememberTimePickerState(
-        initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
-        initialMinute = currentTime.get(Calendar.MINUTE),
-        is24Hour = true,
-    )
     Scaffold(
         topBar = {
             TopAppBar(
@@ -201,7 +196,7 @@ fun AddTaskScreen(
                 }
 
             }
-// Time Picker Dialog
+            // Time Picker Dialog
             if (showTimePicker) {
                 DialWithDialog(
                     onConfirm = { timePickerState ->
@@ -211,8 +206,6 @@ fun AddTaskScreen(
                         val toMillis  = timeToMillis(hour, minute)
                         onEvent(TaskEvent.SetDueTime(toMillis))
                         selectedTime = String.format("%02d:%02d", hour, minute)
-                        // Update the task state with the selected time
-//                        onEvent(TaskEvent.SetTaskTime(hour, minute)) // Make sure to implement this event
                         showTimePicker = false // Close the dialog
                     },
                     onDismiss = {

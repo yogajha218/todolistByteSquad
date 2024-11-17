@@ -25,7 +25,6 @@ fun AppNavigation(
                 navController = navController
             )
         }
-
         // Add/Edit Task Screen
         composable("add_task_screen") {
             AddTaskScreen(
