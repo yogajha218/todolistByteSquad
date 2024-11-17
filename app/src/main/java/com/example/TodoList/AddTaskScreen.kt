@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.FlowRowScopeInstance.align
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +31,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,7 +43,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import java.time.LocalDate
 import java.time.LocalTime
@@ -67,13 +64,7 @@ fun AddTaskScreen(
     var isFocused by remember { mutableStateOf(false) }
     val borderColor = if (isFocused) inputFocusColor else inputColor
     var showTimePicker by remember { mutableStateOf(false) }
-    val currentTime = Calendar.getInstance()
     var selectedTime by remember { mutableStateOf("") }
-    val timePickerState = rememberTimePickerState(
-        initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
-        initialMinute = currentTime.get(Calendar.MINUTE),
-        is24Hour = true,
-    )
     Scaffold(
         topBar = {
             TopAppBar(
@@ -167,7 +158,10 @@ fun AddTaskScreen(
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.border(shape = RoundedCornerShape(16.dp), width = 2.dp, color = Color.Black).background(shape = RoundedCornerShape(16.dp), color = Color.Transparent)
+                        modifier = Modifier.border(shape = RoundedCornerShape(16.dp),
+                            width = 2.dp, color = Color.Black)
+                            .background(shape = RoundedCornerShape(16.dp),
+                                color = Color.Transparent)
                     ) {
                         items.forEach { item ->
                             DropdownMenuItem(
@@ -211,8 +205,6 @@ fun AddTaskScreen(
                         val toMillis  = timeToMillis(hour, minute)
                         onEvent(TaskEvent.SetDueTime(toMillis))
                         selectedTime = String.format("%02d:%02d", hour, minute)
-                        // Update the task state with the selected time
-//                        onEvent(TaskEvent.SetTaskTime(hour, minute)) // Make sure to implement this event
                         showTimePicker = false // Close the dialog
                     },
                     onDismiss = {
