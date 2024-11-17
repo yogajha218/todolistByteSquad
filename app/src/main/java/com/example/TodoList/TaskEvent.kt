@@ -5,6 +5,7 @@ interface TaskEvent {
     data class SetTitle(val title: String): TaskEvent
     data class SetDescription(val description: String): TaskEvent
     data class SetTaskImportance(val taskImportance: Int): TaskEvent
+    data class SetDueTime(val dueTime: Long): TaskEvent
 //    data class SetDueDate(val dueDao: Timestamp): TaskEvent
     object ShowDialog: TaskEvent
     object HideDialog: TaskEvent

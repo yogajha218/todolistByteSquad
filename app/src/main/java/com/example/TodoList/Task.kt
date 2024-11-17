@@ -11,7 +11,7 @@ data class Task(
     val description: String,
 //    val isCompleted: Boolean,
     val taskImportance: Int,
-//    val dueDate: Timestamp,
+    val dueTime: Long,
 //    val createdAt: Timestamp,
 //    val updatedAt: Timestamp,
 
