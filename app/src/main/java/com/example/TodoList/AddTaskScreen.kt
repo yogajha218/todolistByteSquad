@@ -45,8 +45,11 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 import java.util.Calendar
 
 @Composable
@@ -205,10 +208,9 @@ fun AddTaskScreen(
                         // Handle the confirmed time here
                         val hour = timePickerState.hour
                         val minute = timePickerState.minute
-                        val convertTolocale = LocalTime.of(hour, minute)
-                        val toMillis  = convertTolocale.toNanoOfDay()
-                        selectedTime = toMillis.toString()
-//                        selectedTime = String.format("%02d:%02d", hour, minute)
+                        val toMillis  = timeToMillis(hour, minute)
+                        onEvent(TaskEvent.SetDueTime(toMillis))
+                        selectedTime = String.format("%02d:%02d", hour, minute)
                         // Update the task state with the selected time
 //                        onEvent(TaskEvent.SetTaskTime(hour, minute)) // Make sure to implement this event
                         showTimePicker = false // Close the dialog
@@ -222,4 +224,9 @@ fun AddTaskScreen(
         }
     }
 
+}
+fun timeToMillis(hour: Int, minute: Int): Long{
+    val currentDate = LocalDate.now()
+    val localTime = LocalTime.of(hour, minute)
+    return localTime.atDate(currentDate).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 }

@@ -22,7 +22,6 @@ class TaskViewModel(
             when(sortType)
             {
                 SortType.TITLE -> dao.getTaskOrderByTitle()
-//                SortType.DUE_DATE -> dao.getTaskOrderByDueDate()
                 SortType.TASK_IMPORTANCE -> dao.getTaskOrderByPriority()
             }
         }
@@ -66,23 +65,24 @@ class TaskViewModel(
                     title = "",
                    description = "",
                    taskImportance = 3,
+                   dueTime = 0L,
                )}
 
            }
-           is TaskEvent.UpdateTask -> {
-               // Update the existing task in the database
-               viewModelScope.launch {
-                   dao.updateTask(event.task)
-               }
-               _state.update {
-                   it.copy(
-                       isAddingTask = false,
-                       title = "",
-                       description = "",
-                       taskImportance = 3
-                   )
-               }
-           }
+//           is TaskEvent.UpdateTask -> {
+//               // Update the existing task in the database
+//               viewModelScope.launch {
+//                   dao.updateTask(event.task)
+//               }
+//               _state.update {
+//                   it.copy(
+//                       isAddingTask = false,
+//                       title = "",
+//                       description = "",
+//                       taskImportance = 3
+//                   )
+//               }
+//           }
            is TaskEvent.EditTask -> {
                // Load task details into state for editing
                _state.update {
@@ -107,6 +107,11 @@ class TaskViewModel(
            is TaskEvent.SetDescription ->{
                _state.update { it.copy(
                    description = event.description
+               ) }
+           }
+           is TaskEvent.SetDueTime -> {
+               _state.update { it.copy(
+                   dueTime = event.dueTime
                ) }
            }
            TaskEvent.ShowDialog -> {
