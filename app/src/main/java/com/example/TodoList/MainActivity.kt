@@ -11,6 +11,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.room.Room
 import com.example.TodoList.data.TaskDatabase
 import com.example.TodoList.ui.theme.MyApplicationTheme
+import android.Manifest
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.NotificationManagerCompat
 
 class MainActivity : ComponentActivity() {
     private val db by lazy {
@@ -34,10 +39,27 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestNotificationPermission()
         setContent {
             MyApplicationTheme {
                 val state by viewModel.state.collectAsState()
                 AppNavigation(viewModel = viewModel, state = state, onEvent = viewModel::onEvent)
+            }
+        }
+    }
+    private fun requestNotificationPermission() {
+        // Untuk Android 13+ (POST_NOTIFICATIONS)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val launcher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+                if (isGranted) {
+                    Toast.makeText(this, "Izin notifikasi diberikan", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Izin notifikasi ditolak", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+                launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
